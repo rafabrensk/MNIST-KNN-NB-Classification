@@ -1,0 +1,8 @@
+#Virtual environment
+.venv
+
+#Data (The data is a MNIST dataset)
+data/
+
+#Folders structure based on "cookiecutter for data scientists"
+cookiecutter.txt
