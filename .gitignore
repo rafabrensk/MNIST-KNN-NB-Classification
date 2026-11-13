@@ -2,7 +2,8 @@
 .venv
 
 #Data (The data is a MNIST dataset)
-data/
+data/*
+!data/.gitkeep
 
 #Folders structure based on "cookiecutter for data scientists"
 cookiecutter.txt
