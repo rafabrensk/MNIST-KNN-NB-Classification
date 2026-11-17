@@ -1,0 +1,6 @@
+Relatório KNN para dataset MNIST caso: 33
+Tempo de execução: 474.206 segundos
+Acurácia no conjunto de treinamento: 0.9796666666666667
+Acurácia no conjunto de validação: 0.9644
+Número de vizinhos utilizados: 3
+Métrica utilizada: manhattan

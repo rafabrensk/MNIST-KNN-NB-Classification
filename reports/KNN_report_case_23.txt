@@ -1,0 +1,6 @@
+Relatório KNN para dataset MNIST caso: 23
+Tempo de execução: 39.006 segundos
+Acurácia no conjunto de treinamento: 0.9843571428571428
+Acurácia no conjunto de validação: 0.9712
+Número de vizinhos utilizados: 3
+Métrica utilizada: minkowski
