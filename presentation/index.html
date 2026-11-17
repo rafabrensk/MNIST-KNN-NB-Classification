@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MNIST · Naive Bayes × KNN</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Caveat:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="viewport">
+  <main class="stage" id="stage">
+
+    <!-- ================================================================
+         SLIDE 1 — Título e identificação
+         ================================================================ -->
+    <section class="slide slide--title" data-title="Título">
+      <div class="title-block">
+        <!-- logos: definidos em data.js → logos -->
+        <div class="logos logos--title" id="title-logos"></div>
+        <p class="eyebrow" data-field="meta.course"></p>
+        <h1 data-field="meta.title"></h1>
+        <div class="title-rule"></div>
+        <ul class="members" id="members-list"></ul>
+        <!-- instituição · professor · data (campos de meta em data.js) -->
+        <p class="title-meta" id="title-meta"></p>
+      </div>
+      <div class="title-art" id="title-digits" aria-hidden="true"></div>
+    </section>
+
+    <!-- ================================================================
+         SLIDE 2 — Introdução e objetivo
+         ================================================================ -->
+    <section class="slide" data-title="Introdução">
+      <header class="slide-head">
+        <p class="eyebrow">Introdução e objetivo</p>
+        <h2>Reconhecer dígitos a partir dos pixels</h2>
+      </header>
+
+      <div class="cols cols--intro">
+        <div class="stack">
+          <dl class="facts">
+            <div><dt>Problema</dt><dd>Classificar dígitos manuscritos</dd></div>
+            <div><dt>Dataset</dt><dd>MNIST · 28 × 28 · tons de cinza</dd></div>
+            <div><dt>Rótulos</dt><dd>Dígitos de 0 a 9</dd></div>
+            <div><dt>Objetivo</dt><dd><strong class="c-nb">Naive Bayes</strong> × <strong class="c-knn">KNN</strong></dd></div>
+          </dl>
+          <p class="note">Pixels originais, sem pré-processamento.</p>
+        </div>
+
+        <figure class="intro-figure">
+          <div class="digit-zoom">
+            <canvas id="intro-big-digit" width="28" height="28" class="pixelated"></canvas>
+            <div class="digit-zoom__labels">
+              <span class="big-num">28 × 28</span>
+              <span>784 pixels · 0 a 255</span>
+            </div>
+          </div>
+          <div class="digit-strip" id="intro-digits"></div>
+          <figcaption id="intro-caption"></figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <!-- ================================================================
+         SLIDE 3 — Metodologia de avaliação
+         ================================================================ -->
+    <section class="slide" data-title="Metodologia">
+      <header class="slide-head">
+        <p class="eyebrow">Metodologia de avaliação</p>
+        <h2>Teste usado uma única vez, no final</h2>
+      </header>
+
+      <div class="method">
+        <div class="split-bar" id="split-bar"></div>
+
+        <ol class="flow">
+          <li>
+            <span class="flow__num">1</span>
+            <h3>Divisão</h3>
+            <p>Treino → treino + validação</p>
+            <p class="flow__detail" id="split-detail"></p>
+          </li>
+          <li>
+            <span class="flow__num">2</span>
+            <h3>Seleção</h3>
+            <p>Hiperparâmetros só com a validação</p>
+          </li>
+          <li>
+            <span class="flow__num">3</span>
+            <h3>Retreino</h3>
+            <p>Com as 60.000 imagens</p>
+          </li>
+          <li class="flow__final">
+            <span class="flow__num">4</span>
+            <h3>Teste</h3>
+            <p>10.000 imagens</p>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- ================================================================
+         SLIDE 4 — Modelagem: Naive Bayes
+         ================================================================ -->
+    <section class="slide" data-title="Naive Bayes">
+      <header class="slide-head">
+        <p class="eyebrow c-nb">Modelagem · Naive Bayes</p>
+        <h2>Escolha da distribuição</h2>
+      </header>
+
+      <div class="cols cols--model">
+        <dl class="spec">
+          <div><dt>Implementação</dt><dd data-field="naiveBayes.implementation"></dd></div>
+          <div><dt>Distribuição</dt><dd data-field="naiveBayes.chosen"></dd></div>
+          <div><dt>Justificativa</dt><dd data-field="naiveBayes.justification"></dd></div>
+        </dl>
+
+        <div class="stack">
+          <h3 class="block-title">Distribuições candidatas</h3>
+          <div class="dist-row" id="nb-distributions"></div>
+          <h3 class="block-title">
+            Resultados na validação
+            <span class="example-tag" data-example="nbValidation"></span>
+          </h3>
+          <div class="chart" id="nb-validation-chart"></div>
+        </div>
+      </div>
+
+      <div class="formula-box">
+        <span class="formula-box__label">Regra de decisão</span>
+        <span class="formula-box__expr">ŷ = argmax<sub>c</sub> P(c) ∏ P(x<sub>i</sub> | c)</span>
+      </div>
+    </section>
+
+    <!-- ================================================================
+         SLIDE 5 — Modelagem: KNN
+         ================================================================ -->
+    <section class="slide" data-title="KNN">
+      <header class="slide-head">
+        <p class="eyebrow c-knn-ink">Modelagem · K-Nearest Neighbors</p>
+        <h2>Escolha de K e da distância</h2>
+      </header>
+
+      <div class="cols cols--model">
+        <dl class="spec">
+          <div><dt>Implementação</dt><dd data-field="knn.implementation"></dd></div>
+          <div><dt>Métrica</dt><dd data-field="knn.metric"></dd></div>
+          <div><dt>K</dt><dd data-field="knn.k"></dd></div>
+          <div><dt>Justificativa</dt><dd data-field="knn.justification"></dd></div>
+        </dl>
+
+        <div class="stack">
+          <h3 class="block-title">
+            Erro na validação
+            <span class="example-tag" data-example="knnValidation"></span>
+          </h3>
+          <div class="chart" id="knn-validation-chart"></div>
+        </div>
+      </div>
+
+      <div class="formula-box">
+        <span class="formula-box__label">Distâncias</span>
+        <span class="formula-box__expr">Euclidiana: √Σ (x<sub>i</sub> − y<sub>i</sub>)²</span>
+        <span class="formula-box__expr">Manhattan: Σ |x<sub>i</sub> − y<sub>i</sub>|</span>
+      </div>
+    </section>
+
+    <!-- ================================================================
+         SLIDE 6 — Matrizes de confusão (teste)
+         ================================================================ -->
+    <section class="slide" data-title="Matrizes de confusão">
+      <header class="slide-head">
+        <p class="eyebrow">Resultados finais · conjunto de teste</p>
+        <h2>Matrizes de confusão
+          <span class="example-tag" data-example="confusion"></span>
+        </h2>
+      </header>
+
+      <div class="cols cols--even">
+        <figure class="cm-figure">
+          <figcaption><span class="dot dot--nb"></span>Naive Bayes</figcaption>
+          <div class="heatmap" id="cm-nb"></div>
+          <div class="top-errors" id="cm-nb-top"></div>
+        </figure>
+        <figure class="cm-figure">
+          <figcaption><span class="dot dot--knn"></span>KNN</figcaption>
+          <div class="heatmap" id="cm-knn"></div>
+          <div class="top-errors" id="cm-knn-top"></div>
+        </figure>
+      </div>
+      <p class="legend-line">
+        Linha = real · Coluna = prevista ·
+        <span class="swatch swatch--hit"></span> acertos ·
+        <span class="swatch swatch--err"></span> erros ·
+        <span class="swatch swatch--ring"></span> maiores confusões
+      </p>
+    </section>
+
+    <!-- ================================================================
+         SLIDE 7 — Taxas de erro
+         ================================================================ -->
+    <section class="slide" data-title="Taxas de erro">
+      <header class="slide-head">
+        <p class="eyebrow">Resultados finais · conjunto de teste</p>
+        <h2>Taxas de erro
+          <span class="example-tag" data-example="confusion"></span>
+        </h2>
+      </header>
+
+      <div class="cols cols--errors">
+        <div class="hero-pair" id="global-errors"></div>
+        <div class="stack">
+          <h3 class="block-title">Taxa de erro por classe</h3>
+          <div class="chart" id="class-error-chart"></div>
+        </div>
+      </div>
+      <table class="data-table" id="class-error-table"></table>
+    </section>
+
+    <!-- ================================================================
+         SLIDE 8 — Inovação e extras
+         ================================================================ -->
+    <section class="slide" data-title="Extras">
+      <header class="slide-head">
+        <p class="eyebrow">Inovação e extras</p>
+        <h2 id="extras-title">Análises complementares</h2>
+      </header>
+      <nav class="tabs" id="extras-tabs" role="tablist"></nav>
+      <div class="tab-panels" id="extras-panels"></div>
+    </section>
+
+    <!-- ================================================================
+         SLIDE 9 — Discussão e conclusões
+         ================================================================ -->
+    <section class="slide" data-title="Conclusões">
+      <header class="slide-head">
+        <p class="eyebrow">Discussão e conclusões</p>
+        <h2>Conclusões</h2>
+      </header>
+      <div class="conclusions" id="conclusions"></div>
+    </section>
+
+    <!-- ================================================================
+         DEMONSTRAÇÃO INTERATIVA
+         ================================================================ -->
+    <section class="slide slide--demo" data-title="Demonstração" id="demo">
+      <header class="slide-head slide-head--row">
+        <div>
+          <p class="eyebrow">Demonstração interativa</p>
+          <h2>Desenhe um dígito</h2>
+        </div>
+        <p class="sim-banner is-hidden" id="sim-banner">
+          <strong>Modo demonstração</strong> — resultados simulados, não são previsões reais dos modelos.
+        </p>
+      </header>
+
+      <div class="demo">
+        <!-- Entrada: canvas + controles -->
+        <div class="demo__input">
+          <canvas id="draw-canvas" width="560" height="560" aria-label="Área de desenho do dígito"></canvas>
+          <label class="range">
+            <span>Espessura</span>
+            <input type="range" id="brush-size" min="14" max="60" value="34">
+            <output id="brush-size-value">34</output>
+          </label>
+          <div class="btn-row">
+            <button type="button" class="btn btn--ghost" id="btn-clear">Limpar</button>
+            <button type="button" class="btn btn--primary" id="btn-classify">Classificar</button>
+          </div>
+        </div>
+
+        <!-- Saída: um painel por classificador + comparação -->
+        <div class="demo__results">
+          <div class="demo__panels">
+            <div class="result-panel result-panel--nb">
+              <h3><span class="dot dot--nb"></span>Naive Bayes</h3>
+              <div class="prediction">
+                <span class="prediction__digit is-empty" id="nb-pred">?</span>
+                <span class="prediction__label">dígito previsto<br><span id="nb-conf" class="muted">&nbsp;</span></span>
+              </div>
+              <p class="block-title">Probabilidade por classe</p>
+              <div class="chart chart--demo" id="nb-demo-chart"></div>
+            </div>
+            <div class="result-panel result-panel--knn">
+              <h3><span class="dot dot--knn"></span>KNN</h3>
+              <div class="prediction">
+                <span class="prediction__digit is-empty" id="knn-pred">?</span>
+                <span class="prediction__label">dígito previsto<br><span id="knn-conf" class="muted">&nbsp;</span></span>
+              </div>
+              <p class="block-title">Proporção de votos por classe</p>
+              <div class="chart chart--demo" id="knn-demo-chart"></div>
+            </div>
+          </div>
+
+          <div class="compare">
+            <div class="compare__input">
+              <canvas id="preview-canvas" width="28" height="28" class="pixelated"></canvas>
+              <span>Entrada do modelo<br><span class="muted">28 × 28 pixels</span></span>
+            </div>
+            <div class="compare__result">
+              <span class="pill" id="agree-pill">Aguardando</span>
+              <p id="agree-text">Desenhe um dígito e clique em <strong>Classificar</strong>.</p>
+              <!-- seleção manual dos arquivos de models/ (quando o index.html é aberto direto do disco) -->
+              <input type="file" id="models-input" multiple accept=".json,.gz,.bin" hidden>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================================================================
+         OBRIGADO (textos em data.js → thanks)
+         ================================================================ -->
+    <section class="slide slide--thanks" data-title="Obrigado">
+      <div class="logos logos--thanks" id="thanks-logos"></div>
+      <h1 data-field="thanks.title"></h1>
+      <p class="thanks__subtitle" data-field="thanks.subtitle"></p>
+      <ul class="thanks__members" id="thanks-members"></ul>
+    </section>
+
+    <!-- ================================================================
+         NAVEGAÇÃO
+         ================================================================ -->
+    <footer class="nav">
+      <label class="switch" title="Preenche com dados fictícios os blocos ainda sem resultados reais">
+        <input type="checkbox" id="toggle-examples">
+        <span class="switch__track" aria-hidden="true"></span>
+        Dados fictícios
+      </label>
+      <div class="nav__controls">
+        <button type="button" class="nav__btn" id="btn-pdf" title="Exportar os slides em PDF (P)">Exportar PDF</button>
+        <button type="button" class="nav__btn" id="btn-demo" title="Ir para a demonstração (D)">Demonstração</button>
+        <button type="button" class="nav__btn nav__btn--icon" id="btn-fullscreen" title="Tela cheia (F)" aria-label="Tela cheia">
+          <svg viewBox="0 0 24 24" width="18" height="18"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+        </button>
+        <button type="button" class="nav__btn nav__btn--icon" id="btn-prev" title="Anterior (←)" aria-label="Slide anterior">
+          <svg viewBox="0 0 24 24" width="18" height="18"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+        </button>
+        <span class="nav__count" id="slide-count">1 / 10</span>
+        <button type="button" class="nav__btn nav__btn--icon" id="btn-next" title="Próximo (→)" aria-label="Próximo slide">
+          <svg viewBox="0 0 24 24" width="18" height="18"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+        </button>
+      </div>
+      <div class="nav__progress"><div class="nav__progress-fill" id="progress-fill"></div></div>
+    </footer>
+
+  </main>
+</div>
+
+<div class="tooltip" id="tooltip" role="tooltip"></div>
+
+<script src="js/data.js"></script>
+<script src="js/charts.js"></script>
+<script src="js/models.js"></script>
+<script src="js/drawing.js"></script>
+<script src="js/presentation.js"></script>
+</body>
+</html>
