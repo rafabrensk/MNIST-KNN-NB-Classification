@@ -1,0 +1,6 @@
+Relatório KNN para dataset MNIST caso: 10
+Tempo de execução: 80.090 segundos
+Acurácia no conjunto de treinamento: 1.0
+Acurácia no conjunto de validação: 0.9711
+Número de vizinhos utilizados: 1
+Métrica utilizada: euclidean

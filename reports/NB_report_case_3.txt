@@ -1,5 +1,5 @@
 Relatório Naive Bayes para dataset MNIST caso: 3
-Tempo de execução: 2.238 segundos
-Precisão de acertos no conjunto de treinamento: 0.83125
-Precisão de acertos no conjunto de teste: 0.8413
+Tempo de execução: 1.885 segundos
+Acurácia no conjunto de treinamento: 0.8324
+Acurácia no conjunto de validação: 0.8269
 Distribuição utilizada: BernoulliNB
