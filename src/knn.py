@@ -3,12 +3,14 @@ import time
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
+from sklearn.metrics import confusion_matrix
 
-caso = 10
+caso = 100
 
 ini_tempo = time.perf_counter()
 
 train_dataset = pd.read_csv("data/mnist_train.csv", header=None)
+test_dataset = pd.read_csv("data/mnist_test.csv", header=None)
 
 X_train_full = train_dataset.drop(columns=[0])
 Y_train_full = train_dataset.iloc[:, 0]
@@ -17,7 +19,7 @@ X_train, X_val, Y_train, Y_val = train_test_split(
     X_train_full, Y_train_full, test_size=0.3, random_state=29
 )
 
-model_KNN = KNeighborsClassifier(n_neighbors=1, metric='euclidean')
+model_KNN = KNeighborsClassifier(n_neighbors=3, metric='minkowski', n_jobs=-1)
 model_KNN.fit(X_train, Y_train)
 
 results_train = model_KNN.predict(X_train)
@@ -28,6 +30,12 @@ val_accuracy = accuracy_score(Y_val, results_val)
 
 fim_tempo = time.perf_counter()
 
+X_test = test_dataset.drop(columns=[0])
+Y_test = test_dataset.iloc[:, 0]
+results_test = model_KNN.predict(X_test)
+
+cofmat = confusion_matrix(Y_test, results_test) #True/Pred
+
 with open(f"reports/KNN_report_case_{caso}.txt", "w") as report_txt:
     report_txt.write(
         f"Relatório KNN para dataset MNIST caso: {caso}\n"
@@ -36,4 +44,5 @@ with open(f"reports/KNN_report_case_{caso}.txt", "w") as report_txt:
         f"Acurácia no conjunto de validação: {val_accuracy:.4f}\n"
         f"Número de vizinhos utilizados: {model_KNN.n_neighbors}\n"
         f"Métrica utilizada: {model_KNN.metric}\n"
+        f"Matriz de confusão:\n{cofmat}"
     )

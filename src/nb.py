@@ -3,12 +3,14 @@ import time
 from sklearn.naive_bayes import GaussianNB, MultinomialNB, BernoulliNB
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
+from sklearn.metrics import confusion_matrix
 
-caso = 3
+caso = 100
 
 ini_tempo = time.perf_counter()
 
 train_dataset = pd.read_csv("data/mnist_train.csv", header=None)
+test_dataset = pd.read_csv("data/mnist_test.csv", header=None)
 
 X_train_full = train_dataset.drop(columns=[0])
 Y_train_full = train_dataset.iloc[:, 0]
@@ -28,6 +30,12 @@ val_accuracy = accuracy_score(Y_val, results_val)
 
 fim_tempo = time.perf_counter()
 
+X_test = test_dataset.drop(columns=[0])
+Y_test = test_dataset.iloc[:, 0]
+results_test = model_NB.predict(X_test)
+
+cofmat = confusion_matrix(Y_test, results_test) #True/Pred
+
 with open(f"reports/NB_report_case_{caso}.txt", "w") as report_txt:
     report_txt.write(
         f"Relatório Naive Bayes para dataset MNIST caso: {caso}\n"
@@ -35,4 +43,5 @@ with open(f"reports/NB_report_case_{caso}.txt", "w") as report_txt:
         f"Acurácia no conjunto de treinamento: {train_accuracy:.4f}\n"
         f"Acurácia no conjunto de validação: {val_accuracy:.4f}\n"
         f"Distribuição utilizada: {type(model_NB).__name__}\n"
+        f"Matriz de confusão:\n{cofmat}"
     )

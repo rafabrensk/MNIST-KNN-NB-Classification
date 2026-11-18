@@ -1,0 +1,16 @@
+Relatório Naive Bayes para dataset MNIST caso: 100
+Tempo de execução: 2.839 segundos
+Acurácia no conjunto de treinamento: 0.8324
+Acurácia no conjunto de validação: 0.8269
+Distribuição utilizada: BernoulliNB
+Matriz de confusão:
+[[ 886    0    4    7    2   43   16    1   21    0]
+ [   0 1088   10    5    0    7    6    0   19    0]
+ [  19    8  853   28   17    4   32   14   55    2]
+ [   5   16   33  844    0   12    9   15   50   26]
+ [   2    6    4    0  791    4   21    1   23  130]
+ [  23   14    5  129   30  628   16    7   20   20]
+ [  19   18   15    2   13   35  850    0    6    0]
+ [   1   24   14    4   14    0    0  872   27   72]
+ [  16   22   13   74   17   23    7    6  759   37]
+ [   9   13    5   10   76    7    0   23   25  841]]
