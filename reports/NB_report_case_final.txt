@@ -1,5 +1,5 @@
-Relatório Naive Bayes para dataset MNIST caso: 100
-Tempo de execução: 2.839 segundos
+Relatório Naive Bayes para dataset MNIST caso: 101
+Tempo de execução: 1.872 segundos
 Acurácia no conjunto de treinamento: 0.8324
 Acurácia no conjunto de validação: 0.8269
 Distribuição utilizada: BernoulliNB
@@ -14,3 +14,15 @@ Matriz de confusão:
  [   1   24   14    4   14    0    0  872   27   72]
  [  16   22   13   74   17   23    7    6  759   37]
  [   9   13    5   10   76    7    0   23   25  841]]
+Taxa de erro no conjunto de teste (por classe):
+Classe 0: 9.59%
+Classe 1: 4.14%
+Classe 2: 17.34%
+Classe 3: 16.44%
+Classe 4: 19.45%
+Classe 5: 29.60%
+Classe 6: 11.27%
+Classe 7: 15.18%
+Classe 8: 22.07%
+Classe 9: 16.65%
+Taxa de erro total: 15.88%

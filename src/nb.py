@@ -5,7 +5,7 @@ from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import confusion_matrix
 
-caso = 100
+caso = 101
 
 ini_tempo = time.perf_counter()
 
@@ -36,6 +36,15 @@ results_test = model_NB.predict(X_test)
 
 cofmat = confusion_matrix(Y_test, results_test) #True/Pred
 
+erro_total = 1 - accuracy_score(Y_test, results_test)
+
+texto_erro_classes = ""
+for i in range(len(cofmat)):
+    acertos = cofmat[i][i]
+    total_classe = sum(cofmat[i])
+    erro_classe = 1 - (acertos / total_classe)
+    texto_erro_classes += f"Classe {i}: {erro_classe * 100:.2f}%\n"
+
 with open(f"reports/NB_report_case_{caso}.txt", "w") as report_txt:
     report_txt.write(
         f"Relatório Naive Bayes para dataset MNIST caso: {caso}\n"
@@ -43,5 +52,8 @@ with open(f"reports/NB_report_case_{caso}.txt", "w") as report_txt:
         f"Acurácia no conjunto de treinamento: {train_accuracy:.4f}\n"
         f"Acurácia no conjunto de validação: {val_accuracy:.4f}\n"
         f"Distribuição utilizada: {type(model_NB).__name__}\n"
-        f"Matriz de confusão:\n{cofmat}"
+        f"Matriz de confusão:\n{cofmat}\n"
+        f"Taxa de erro no conjunto de teste (por classe):\n"
+        f"{texto_erro_classes}"
+        f"Taxa de erro total: {erro_total * 100:.2f}%\n"
     )
