@@ -218,7 +218,7 @@ const ClassifierService = (() => {
     if (BrowserModels.isReady()) return Promise.resolve(true);
     if (!loading) {
       loading = BrowserModels.loadFromUrl(PRESENTATION.demo.modelsPath || 'models/')
-        .then(() => true)
+        .then(() => { document.dispatchEvent(new Event('models:loaded')); return true; })
         .catch(() => false)
         .finally(() => { loading = null; });
     }
@@ -258,7 +258,8 @@ const ClassifierService = (() => {
 
   return {
     classify, normalize, ensureModels,
-    loadFiles: (files) => BrowserModels.loadFromFiles(files),
+    loadFiles: (files) => BrowserModels.loadFromFiles(files)
+      .then(() => document.dispatchEvent(new Event('models:loaded'))),
     modelsReady: () => BrowserModels.isReady(),
     modelsInfo: () => BrowserModels.info(),
     isSimulated: () => simulationEnabled && !BrowserModels.isReady(),
@@ -332,8 +333,15 @@ const DemoController = (() => {
   function showUnavailable() {
     setStatus('off', 'Sem modelos',
       'Modelos não encontrados em <code>models/</code>. ' +
-      '<button type="button" class="link-btn" id="btn-pick-models">Selecionar arquivos</button>');
+      '<button type="button" class="link-btn" id="btn-pick-models">Selecionar arquivos</button> ou ' +
+      '<button type="button" class="link-btn" id="btn-simulate">Simular</button>');
     $('btn-pick-models').addEventListener('click', () => $('models-input').click());
+    // "Simular" liga o botão "Dados fictícios" da barra inferior
+    $('btn-simulate').addEventListener('click', () => {
+      const toggle = $('toggle-examples');
+      toggle.checked = true;
+      toggle.dispatchEvent(new Event('change'));
+    });
   }
 
   async function loadPickedFiles(files) {
@@ -353,6 +361,7 @@ const DemoController = (() => {
     const ok = await ClassifierService.ensureModels();
     $('sim-banner').classList.toggle('is-hidden', !ClassifierService.isSimulated());
     if (ok) setStatus('waiting', 'Pronto', `Modelos carregados: ${modelsLabel(ClassifierService.modelsInfo())}.`);
+    else if (!ClassifierService.isSimulated()) showUnavailable();
   }
 
   function setStatus(kind, label, html) {

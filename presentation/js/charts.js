@@ -2,7 +2,6 @@
    charts.js — gráficos em SVG/HTML puro (sem bibliotecas)
    --------------------------------------------------------------------------
    Charts.barChart(el, opts)      barras verticais (agrupadas ou simples)
-   Charts.hbarChart(el, opts)     barras horizontais
    Charts.heatmap(el, matrix)     matriz de confusão 10 × 10
    Charts.drawPixels(canvas, px)  imagem 28 × 28 a partir de 784 valores
    Charts.errorStats(matrix)      taxas de erro por classe e global
@@ -32,12 +31,6 @@ const Charts = (() => {
     r = Math.min(r, w / 2, h);
     return `M${x},${y + h}V${y + r}Q${x},${y} ${x + r},${y}H${x + w - r}Q${x + w},${y} ${x + w},${y + r}V${y + h}Z`;
   }
-  function hbarPath(x, y, w, h, r = 4) {
-    if (w <= 0) return '';
-    r = Math.min(r, h / 2, w);
-    return `M${x},${y}H${x + w - r}Q${x + w},${y} ${x + w},${y + r}V${y + h - r}Q${x + w},${y + h} ${x + w - r},${y + h}H${x}Z`;
-  }
-
   function niceMax(v) {
     if (v <= 0) return 1;
     const exp = Math.pow(10, Math.floor(Math.log10(v)));
@@ -182,40 +175,6 @@ const Charts = (() => {
     container.appendChild(svg);
   }
 
-  /* ------------------------------------------------------------ hbarChart
-     opts = { items: [{ name, value }], color, highlightName, format } */
-  function hbarChart(container, opts) {
-    const { items, color = '#2563eb', highlightName = null, format = pct, rowH = 44 } = opts;
-    container.innerHTML = '';
-    const W = opts.width || container.clientWidth || 700;
-    const m = { top: 4, right: 80, bottom: 4, left: 150 };
-    const H = m.top + m.bottom + items.length * rowH;
-    const iw = W - m.left - m.right;
-    const max = opts.max ?? niceMax(Math.max(...items.map((d) => d.value ?? 0), 0));
-    const svg = svgEl('svg', { viewBox: `0 0 ${W} ${H}`, role: 'img' });
-
-    items.forEach((d, i) => {
-      const yy = m.top + i * rowH;
-      const bh = rowH * 0.56, by = yy + (rowH - bh) / 2;
-      const dim = highlightName && d.name !== highlightName;
-      const name = svgEl('text', { x: m.left - 14, y: yy + rowH / 2 + 5, 'text-anchor': 'end', class: 'tick-label' }, svg);
-      name.textContent = d.name;
-      if (d.value != null) {
-        const w = (d.value / max) * iw;
-        svgEl('path', { d: hbarPath(m.left, by, w, bh), fill: color, opacity: dim ? 0.35 : 1, class: 'bar' }, svg);
-        const t = svgEl('text', { x: m.left + w + 10, y: yy + rowH / 2 + 5, class: 'value-label' }, svg);
-        t.textContent = format(d.value);
-      } else {
-        const t = svgEl('text', { x: m.left + 4, y: yy + rowH / 2 + 5, class: 'axis-label' }, svg);
-        t.textContent = '[a preencher]';
-      }
-      const hit = svgEl('rect', { x: 0, y: yy, width: W, height: rowH, fill: 'transparent' }, svg);
-      bindTip(hit, () => `<strong>${d.name}</strong><br>${opts.valueLabel || 'Valor'}: ${format(d.value)}`);
-    });
-    svgEl('line', { x1: m.left, x2: m.left, y1: 0, y2: H, class: 'baseline' }, svg);
-    container.appendChild(svg);
-  }
-
   /* ------------------------------------------------------------ estatísticas */
   function errorStats(matrix) {
     if (!matrix) return null;
@@ -293,25 +252,17 @@ const Charts = (() => {
   }
 
   /* ------------------------------------------------------------ pixels 28×28
-     colormap: 'gray' (preto → branco) | 'blue' (preto → azul → branco) */
-  function drawPixels(canvas, pixels, { colormap = 'gray', max = null } = {}) {
+     tons de cinza: 0 = preto, max = branco */
+  function drawPixels(canvas, pixels, { max = null } = {}) {
     const ctx = canvas.getContext('2d');
     const side = Math.round(Math.sqrt(pixels.length));
     canvas.width = side; canvas.height = side;
     const img = ctx.createImageData(side, side);
     const mx = max ?? Math.max(...pixels, 1);
     for (let p = 0; p < pixels.length; p++) {
-      const t = Math.max(0, Math.min(1, pixels[p] / mx));
-      let r, g, b;
-      if (colormap === 'blue') {
-        // preto → azul (#2563eb) → branco
-        if (t < 0.6) { const k = t / 0.6; r = 37 * k; g = 99 * k; b = 235 * k; }
-        else { const k = (t - 0.6) / 0.4; r = 37 + 218 * k; g = 99 + 156 * k; b = 235 + 20 * k; }
-      } else {
-        r = g = b = 255 * t;
-      }
+      const v = 255 * Math.max(0, Math.min(1, pixels[p] / mx));
       const o = p * 4;
-      img.data[o] = r; img.data[o + 1] = g; img.data[o + 2] = b; img.data[o + 3] = 255;
+      img.data[o] = img.data[o + 1] = img.data[o + 2] = v; img.data[o + 3] = 255;
     }
     ctx.putImageData(img, 0, 0);
   }
@@ -321,5 +272,5 @@ const Charts = (() => {
     container.innerHTML = `<div class="empty-state" style="height:${height}px">${text}</div>`;
   }
 
-  return { barChart, hbarChart, heatmap, emptyState, mix, drawPixels, errorStats, topConfusions, pct, fmtInt, showTip, hideTip };
+  return { barChart, heatmap, emptyState, mix, drawPixels, errorStats, topConfusions, pct, fmtInt, showTip, hideTip };
 })();
