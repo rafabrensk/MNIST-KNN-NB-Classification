@@ -1,0 +1,82 @@
+\documentclass[12pt, a4paper]{article}
+\usepackage[a4paper, top=3cm, left=3cm, bottom=2cm, right=2cm]{geometry}
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[portuguese]{babel}
+\else
+  \usepackage{fontspec}
+  \usepackage[portuguese, english, bidi=basic, provide=*]{babel}
+  \babelprovide[import, onchar=ids fonts]{english}
+  \babelfont{rm}{Noto Sans}
+\fi
+\usepackage{setspace}
+\onehalfspacing
+\usepackage{indentfirst}
+\setlength{\parindent}{1.25cm}
+\usepackage{enumitem}
+\setlist[itemize]{label=-}
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{hyperref}
+
+\title{\textbf{Classificação do Dataset MNIST: \\ Análise Comparativa entre Naive Bayes e K-NN}}
+\author{Enzo Rocha, Giovana Leite e Rafael Silva de Oliveira}
+\date{Novembro de 2026}
+
+\begin{document}
+
+\maketitle
+
+\section{Introdução}
+O presente relatório documenta os resultados obtidos na classificação de dígitos manuscritos utilizando o conjunto de dados MNIST. O objetivo principal do trabalho consistiu no desenvolvimento e avaliação de dois classificadores supervisionados, Naive Bayes e K-Nearest Neighbors (KNN), utilizando diretamente os valores dos pixels ($28 \times 28$) como atributos de entrada, sem a aplicação de técnicas prévias de extração de características.
+
+Os dados fornecidos consistem em um conjunto total de 70.000 imagens, divididas metodologicamente da seguinte forma: os 60.000 exemplos originais de treinamento foram particionados em 70\% para treinamento (42.000 imagens) e 30\% para validação (18.000 imagens), utilizando a técnica de particionamento aleatório com semente fixa (\textit{random state} igual a 29). O conjunto de teste original contendo 10.000 exemplos foi estritamente reservado para a geração da avaliação final e extração das taxas de erro reportadas a seguir.
+
+\section{Detalhes de Implementação e Escolhas de Projeto}
+
+Toda a codificação do projeto foi construída na linguagem Python. A seguir, estão detalhados os aspectos técnicos para cada um dos modelos desenvolvidos.
+
+\subsection{Implementação do Naive Bayes}
+Para o classificador Naive Bayes, não houve implementação do algoritmo do zero. Utilizou-se a biblioteca \textbf{Scikit-Learn} para a construção e validação do modelo. 
+
+Durante a fase de investigação de hiperparâmetros pelo conjunto de validação, testou-se diferentes pressuposições para a distribuição dos atributos numéricos (pixels):
+\begin{itemize}
+    \item A versão padrão baseada em distribuição normal (\textit{GaussianNB}) obteve uma acurácia de validação de apenas 58,02\%.
+    \item A distribuição Multinomial (\textit{MultinomialNB}) apresentou acurácia de validação de 82,05\%.
+    \item A distribuição de \textbf{Bernoulli} (\textit{BernoulliNB}) foi a que atingiu o melhor desempenho na fase de testes preliminares, com acurácia de validação de 82,69\%.
+\end{itemize}
+
+Com base nestes resultados, a versão final do Naive Bayes adotou assumidamente a \textbf{distribuição de Bernoulli}, tratando os dados não como uma distribuição gaussiana contínua, mas analisando a presença ou ausência de intensidade de pixel para as predições.
+
+\subsection{Implementação do K-Nearest Neighbors (KNN)}
+Semelhante ao classificador probabilístico, a implementação do KNN foi realizada utilizando o pacote \textbf{KNeighborsClassifier} proveniente do \textbf{Scikit-Learn}. 
+
+As escolhas dos hiperparâmetros foram inteiramente guiadas pelo comportamento métrico dos algoritmos frente ao conjunto de validação. A tabela abaixo sumariza o experimento principal realizado sobre diferentes métricas e diferentes valores de \textit{K}:
+
+\begin{table}[h]
+\centering
+\caption{Acurácia observada no conjunto de validação para o KNN}
+\vspace{0.2cm}
+\begin{tabular}{ccc}
+\toprule
+\textbf{Valor de K} & \textbf{Métrica Minkowski (\%)} & \textbf{Métrica Manhattan (\%)} \\
+\midrule
+K = 1 & 97,11 & 96,41 \\
+K = 2 & 96,42 & 95,47 \\
+K = 3 & \textbf{97,12} & 96,44 \\
+K = 4 & 97,01 & 96,38 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Analisando a referida tabela, conclui-se que o pico de desempenho preditivo do modelo durante a fase de treino ocorreu ao configurá-lo com $K = 3$ e operando sobre a \textbf{métrica de distância Minkowski} (com parâmetro default de ordem geométrica equivalente à distância Euclidiana no scikit-learn). A métrica Minkowski generalizou os atributos do espaço das imagens de forma ligeiramente superior à métrica Manhattan (focada em grade) neste domínio específico, consolidando-a como a métrica adotada na execução final.
+
+\section{Conclusão Analítica}
+
+A partir do submetimento da configuração refinada de ambos os modelos contra o conjunto definitivo de teste (10.000 amostras), pode-se extrair as conclusões sobre as eficácias dos classificadores. 
+
+O \textbf{Naive Bayes (Bernoulli)} apresentou um \textbf{erro total de 15,88\%}, possuindo extremas dificuldades de classificação para o dígito \textit{5} (29,60\% de taxa de erro) e o dígito \textit{8} (22,07\%). Em severo contraste empírico, o algoritmo \textbf{KNN (K=3, Minkowski)} superou largamente a técnica probabilística, consolidando uma \textbf{taxa de erro total de meros 3,41\%}, tendo seu maior déficit na identificação da classe \textit{8} (ainda assim um erro restrito a 7,49\%).
+
+Conclui-se que o classificador KNN é consideravelmente mais capacitado para a análise do dataset MNIST em seu estado bruto de pixels. O KNN explora com precisão as correlações e os padrões geométricos de proximidade (vizinhança no espaço de $28 \times 28$ dimensões) inerentes às imagens. Por outro lado, o pressuposto elementar de independência das variáveis (\textit{pixels}) assumido pelo modelo Naive Bayes é gravemente ferido no contexto de imagens, pois a intensidade de um pixel tem forte correlação física e probabilística com a coloração dos pixels imediatamente ao seu redor na formação de um dígito. Logo, a abstração estatística mais simplificada resulta em um modelo frágil para essa modalidade de dados sem uma prévia transformação e extração complexa de características.
+
+\end{document}

@@ -10,3 +10,4 @@ data/*
 
 #Folders structure based on "cookiecutter for data scientists"
 cookiecutter.txt
+bash.exe.stackdump

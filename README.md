@@ -1,246 +1,113 @@
-# Classificação de Dígitos MNIST
+# Machine Learning: Naive Bayes e K-NN para o dataset MNIST
 
-## Objetivo
+**Integrantes:** Enzo Rocha, Giovana Leite, Rafael Oliveira
 
-Este projeto tem como objetivo implementar e comparar dois algoritmos de aprendizado de máquina, **Naive Bayes** e **K-Nearest Neighbors (KNN)**, na classificação de dígitos manuscritos utilizando a base de dados MNIST.
+## Como rodar
 
-A comparação busca avaliar o desempenho dos algoritmos na identificação dos números de 0 a 9, analisando seus resultados e os erros cometidos durante a classificação.
+1. Instale as dependências:
+   ```bash
+   pip install -r requirements.txt
+   ```
+2. Coloque `mnist_train.csv` e `mnist_test.csv` dentro da pasta `data/`.
+3. Rode os classificadores a partir da raiz do projeto (os relatórios são salvos em `reports/`):
+   ```bash
+   python src/nb.py
+   python src/knn.py
+   ```
+4. Abra a apresentação com o teste ao vivo:
+   ```bash
+   cd presentation
+   python -m http.server 8000
+   ```
+   Depois acesse **http://localhost:8000** no navegador.
 
-## Estrutura do projeto
+## Motivação
 
-```
-MNIST-KNN-NB-Classification/
-├── data/                   # Arquivos da base MNIST (não versionados)
-├── reports/                # Resultados e relatórios gerados
-├── src/
-│   ├── knn.py              # Classificador K-Nearest Neighbors
-│   ├── nb.py               # Classificador Naive Bayes
-│   └── export_web_models.py # Exporta os modelos para rodarem na apresentação
-├── presentation/           # Apresentação em slides (HTML, CSS e JS)
-├── generate_mnist_csv.py   # Converte os arquivos IDX do MNIST para CSV
-├── requirements.txt
-└── README.md
-```
+O **MNIST** é um conjunto de dados composto por imagens de dígitos manuscritos, representadas em escala de cinza e com resolução de 28 × 28 pixels.
 
-## Como executar
+- **Objetivo:** desenvolver classificadores supervisionados capazes de reconhecer dígitos de 0 a 9, comparando o desempenho dos algoritmos Naive Bayes e K-Nearest Neighbors (KNN).
+- **Restrição metodológica:** utilizar diretamente os valores dos pixels como atributos de entrada, sem técnicas de pré-processamento ou extração de características.
 
-### 1. Clone o repositório
+## Metodologia
 
-```bash
-git clone https://github.com/rafabrensk/MNIST-KNN-NB-Classification.git
-cd MNIST-KNN-NB-Classification
-```
+- **Divisão dos dados:** os 60.000 exemplos de treinamento do MNIST foram divididos em 70 % para treinamento (42.000 imagens) e 30 % para validação (18.000 imagens), com `train_test_split` e `random_state=29`.
+- **Fluxo de decisão:** o conjunto de validação foi usado exclusivamente para avaliar os modelos e orientar as escolhas de projeto: a distribuição de probabilidade do Naive Bayes, a métrica de distância e os hiperparâmetros do KNN.
+- **Conjunto de teste:** os 10.000 exemplos de teste foram reservados para a avaliação final, sendo usados na geração das matrizes de confusão e no cálculo das taxas de erro.
 
-### 2. Crie e ative um ambiente virtual
+## Investigação de hiperparâmetros
 
-```bash
-python -m venv .venv
-```
+### Naive Bayes
 
-Windows:
-```bash
-.venv\Scripts\activate
-```
+| Distribuição | Acurácia no treino | Acurácia na validação | Tempo (s) |
+|---|---:|---:|---:|
+| GaussianNB | 0,5817 | 0,5802 | 3,216 |
+| MultinomialNB | 0,8263 | 0,8205 | 1,133 |
+| **BernoulliNB** | **0,8324** | **0,8269** | **1,885** |
 
-Linux/macOS:
-```bash
-source .venv/bin/activate
-```
+### KNN
 
-### 3. Instale as dependências
+Acurácia no conjunto de validação:
 
-```bash
-pip install -r requirements.txt
-```
+| K | Euclidiana | Minkowski | Manhattan |
+|---|---:|---:|---:|
+| 1 | 0,9711 | 0,9711 | 0,9641 |
+| 2 | 0,9642 | 0,9642 | 0,9547 |
+| **3** | **0,9712** | **0,9712** | 0,9644 |
+| 4 | 0,9701 | 0,9701 | 0,9638 |
 
-### 4. Prepare a base de dados
+Tempo de execução (s):
 
-A pasta `data/` não é versionada. Baixe os quatro arquivos originais do MNIST (formato IDX, descompactados) e coloque-os em `data/`:
+| K | Euclidiana | Minkowski | Manhattan |
+|---|---:|---:|---:|
+| 1 | 48,371 | 38,337 | 477,727 |
+| 2 | 39,769 | 38,269 | 480,932 |
+| 3 | 37,867 | 37,774 | 474,206 |
+| 4 | 40,169 | 38,983 | 477,621 |
 
-- `train-images.idx3-ubyte`
-- `train-labels.idx1-ubyte`
-- `t10k-images.idx3-ubyte`
-- `t10k-labels.idx1-ubyte`
+## Modelos finais
 
-Em seguida, gere os arquivos CSV executando o script de conversão a partir da pasta `data/`:
+- **Naive Bayes:** implementado em scikit-learn (Python) com a distribuição de **Bernoulli** (`BernoulliNB`).
+- **KNN:** implementado em scikit-learn (Python) com **K = 3** (3 vizinhos) e métrica de distância **Minkowski** (`KNeighborsClassifier(n_neighbors=3, metric='minkowski')`).
 
-```bash
-cd data
-python ../generate_mnist_csv.py
-cd ..
-```
+## Conclusão
 
-Serão criados `data/mnist_train.csv` (60.000 amostras) e `data/mnist_test.csv` (10.000 amostras). Em cada linha, a primeira coluna é o rótulo (0–9) e as 784 colunas seguintes são os pixels da imagem 28×28.
+### Taxa de erro no conjunto de teste
 
-### 5. Execute os classificadores
+| Taxa de erro | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | Total |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| NB | 9,59 % | 4,14 % | 17,34 % | 16,44 % | 19,45 % | 29,60 % | 11,27 % | 15,18 % | 22,07 % | 16,65 % | **15,88 %** |
+| KNN | 0,51 % | 0,35 % | 3,97 % | 3,47 % | 4,58 % | 3,70 % | 1,57 % | 4,09 % | 7,49 % | 4,76 % | **3,41 %** |
 
-Os scripts devem ser executados a partir da raiz do repositório:
+### Matriz de confusão: KNN
 
-```bash
-python src/nb.py
-python src/knn.py
-```
+| KNN | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| **0** | 975 | 1 | 1 | 0 | 0 | 0 | 1 | 1 | 1 | 0 |
+| **1** | 0 | 1131 | 2 | 0 | 0 | 0 | 2 | 0 | 0 | 0 |
+| **2** | 11 | 9 | 991 | 3 | 1 | 0 | 0 | 15 | 2 | 0 |
+| **3** | 0 | 2 | 4 | 975 | 1 | 16 | 1 | 6 | 3 | 2 |
+| **4** | 2 | 8 | 0 | 0 | 937 | 0 | 6 | 3 | 0 | 26 |
+| **5** | 7 | 1 | 0 | 11 | 2 | 859 | 4 | 1 | 1 | 6 |
+| **6** | 6 | 4 | 0 | 0 | 2 | 2 | 943 | 0 | 1 | 0 |
+| **7** | 0 | 23 | 5 | 1 | 3 | 0 | 0 | 986 | 0 | 10 |
+| **8** | 8 | 4 | 6 | 18 | 5 | 19 | 2 | 5 | 901 | 6 |
+| **9** | 6 | 6 | 3 | 8 | 8 | 1 | 1 | 14 | 1 | 961 |
 
-## Resultados
+### Matriz de confusão: Naive Bayes
 
-### 1. Matriz de confusão
+| NB | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| **0** | 886 | 0 | 4 | 7 | 2 | 43 | 16 | 1 | 21 | 0 |
+| **1** | 0 | 1088 | 10 | 5 | 0 | 7 | 6 | 0 | 19 | 0 |
+| **2** | 19 | 8 | 853 | 28 | 17 | 4 | 32 | 14 | 55 | 2 |
+| **3** | 5 | 16 | 33 | 844 | 0 | 12 | 9 | 15 | 50 | 26 |
+| **4** | 2 | 6 | 4 | 0 | 791 | 4 | 21 | 1 | 23 | 130 |
+| **5** | 23 | 14 | 5 | 129 | 30 | 628 | 16 | 7 | 20 | 20 |
+| **6** | 19 | 18 | 15 | 2 | 13 | 35 | 850 | 0 | 6 | 0 |
+| **7** | 1 | 24 | 14 | 4 | 14 | 0 | 0 | 872 | 27 | 72 |
+| **8** | 16 | 22 | 13 | 74 | 17 | 23 | 7 | 6 | 759 | 37 |
+| **9** | 9 | 13 | 5 | 10 | 76 | 7 | 0 | 23 | 25 | 841 |
 
-**Naive Bayes**
+## Teste ao vivo
 
-| Classe real / Predita | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 |
-|---|---|---|---|---|---|---|---|---|---|---|
-| 0 | | | | | | | | | | |
-| 1 | | | | | | | | | | |
-| 2 | | | | | | | | | | |
-| 3 | | | | | | | | | | |
-| 4 | | | | | | | | | | |
-| 5 | | | | | | | | | | |
-| 6 | | | | | | | | | | |
-| 7 | | | | | | | | | | |
-| 8 | | | | | | | | | | |
-| 9 | | | | | | | | | | |
-
-**K-Nearest Neighbors (KNN)**
-
-| Classe real / Predita | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 |
-|---|---|---|---|---|---|---|---|---|---|---|
-| 0 | | | | | | | | | | |
-| 1 | | | | | | | | | | |
-| 2 | | | | | | | | | | |
-| 3 | | | | | | | | | | |
-| 4 | | | | | | | | | | |
-| 5 | | | | | | | | | | |
-| 6 | | | | | | | | | | |
-| 7 | | | | | | | | | | |
-| 8 | | | | | | | | | | |
-| 9 | | | | | | | | | | |
-
-### 2. Taxa de erro por classe e geral
-
-| Classe | Erro Naive Bayes | Erro KNN |
-|---|---:|---:|
-| 0 | | |
-| 1 | | |
-| 2 | | |
-| 3 | | |
-| 4 | | |
-| 5 | | |
-| 6 | | |
-| 7 | | |
-| 8 | | |
-| 9 | | |
-| **Geral** | | |
-
-### 3. Configurações utilizadas
-
-**Naive Bayes**
-
-- Distribuição utilizada: Gaussiana (`GaussianNB`)
-- Justificativa da escolha:
-- Biblioteca/implementação: scikit-learn (`sklearn.naive_bayes.GaussianNB`)
-
-**KNN**
-
-- Valor de K: 3
-- Métrica de distância: Euclidiana
-- Justificativa das escolhas:
-- Biblioteca/implementação: scikit-learn (`sklearn.neighbors.KNeighborsClassifier`)
-
-### 4. Conclusões
-
-*Preencher com a análise comparativa dos resultados, destacando o desempenho dos algoritmos, suas diferenças e possíveis dificuldades na classificação dos dígitos.*
-
-## Apresentação
-
-A pasta `presentation/` contém os slides do trabalho em HTML, CSS e JavaScript puro, sem frameworks nem backend. São 9 slides de conteúdo e uma demonstração interativa em que se desenha um dígito e os dois classificadores o reconhecem.
-
-### Como abrir
-
-Abra `presentation/index.html` no navegador. Funciona direto do arquivo, sem servidor.
-
-### Navegação
-
-| Tecla | Ação |
-|---|---|
-| → ↓ Espaço PageDown | próximo slide |
-| ← ↑ PageUp | slide anterior |
-| Home / End | primeiro / último slide |
-| D | demonstração interativa |
-| F | tela cheia |
-| P | exportar PDF |
-
-- A barra inferior (navegação, **Dados fictícios** e **Exportar PDF**) aparece só fora da tela cheia.
-- O endereço guarda o slide atual (`index.html#6`).
-
-### Exportar em PDF
-
-O botão **Exportar PDF** (ou a tecla P) abre a impressão do navegador. Escolha **Salvar como PDF** como destino. Cada slide vira uma página 16:9; a demonstração interativa fica de fora. O PDF sai com os dados que estiverem na tela, então confira o botão **Dados fictícios** antes de exportar.
-
-### Dados fictícios
-
-O botão **Dados fictícios**, na barra inferior, serve para visualizar o layout antes de haver resultados:
-
-- **Desligado (padrão):** blocos sem resultados reais aparecem vazios ("Aguardando resultados").
-- **Ligado:** blocos ainda sem dados reais recebem valores fictícios, marcados com o selo amarelo **Dados de exemplo**. Se os modelos não estiverem disponíveis, a demonstração mostra resultados **simulados**.
-
-Os valores fictícios não representam resultados dos modelos.
-
-### Como atualizar o conteúdo
-
-Todo o conteúdo variável fica em **`presentation/js/data.js`**:
-
-| Seção em `data.js` | Slide | O que preencher |
-|---|---|---|
-| `theme` | todos | cores dos modelos (Naive Bayes e KNN) |
-| `meta`, `members` | 1 | título, instituição e integrantes (ordenados automaticamente) |
-| `dataset.sampleImages` | 2 | PNGs reais do MNIST em `assets/images/` (opcional) |
-| `split` | 3 | proporção treino/validação |
-| `naiveBayes` | 4 | distribuição escolhida, justificativa e erro na validação |
-| `knn` | 5 | métrica, K, justificativa e erro na validação por K e métrica |
-| `confusion` | 6, 7, 9 | matrizes de confusão 10 × 10 do teste |
-| `extras` | 8 | análises extras (`enabled: true` para exibir) |
-| `conclusions` | 9 | textos das conclusões |
-| `demo` | 10 | pasta dos modelos exportados (`models/`) |
-
-- Valores `null` aparecem no slide como **[a preencher]**.
-- Os dados fictícios ficam separados, em `EXAMPLE_DATA`, no fim do arquivo. Eles são usados só onde o dado real ainda está vazio.
-- A partir das matrizes de confusão, a apresentação calcula sozinha:
-  - as taxas de erro (slide 7);
-  - as confusões mais frequentes (slide 6);
-  - o melhor classificador (slide 9).
-- Os textos fixos (títulos e tópicos) estão em `index.html`.
-
-### Estrutura
-
-```
-presentation/
-├── index.html
-├── css/style.css          # estilo (interface em preto, branco e cinza)
-├── js/
-│   ├── data.js            # conteúdo editável e dados fictícios
-│   ├── charts.js          # gráficos SVG, matrizes de confusão e imagens 28×28
-│   ├── models.js          # Naive Bayes e KNN rodando no navegador
-│   ├── drawing.js         # canvas de desenho e ClassifierService
-│   └── presentation.js    # montagem dos slides e navegação
-├── models/                # modelos exportados (gerados pelo script abaixo)
-└── assets/images/
-```
-
-### Modelos na demonstração
-
-A demonstração classifica o desenho com os modelos reais, **rodando no próprio navegador**, sem servidor Python. O navegador não lê `.pkl`, por isso os parâmetros dos modelos são exportados para arquivos simples:
-
-```bash
-python src/export_web_models.py --nb bernoulli --k 1 --metric euclidean
-```
-
-- O script treina com os 60.000 exemplos de `data/mnist_train.csv` e grava em `presentation/models/`:
-  - `naive_bayes.json`: parâmetros do Naive Bayes;
-  - `knn.json`: K e métrica;
-  - `knn_train.bin.gz`: imagens de treino compactadas, usadas pelo KNN.
-- Troque `--nb`, `--k` e `--metric` pela configuração escolhida na validação. Para exportar modelos já salvos, use `--nb-pkl` e `--knn-pkl`.
-- As contas em `js/models.js` reproduzem as do scikit-learn: o Naive Bayes dá as mesmas probabilidades e o KNN os mesmos votos.
-
-Quando a apresentação é publicada (GitHub Pages, por exemplo), os modelos são carregados sozinhos ao abrir a demonstração. Abrindo o `index.html` direto do disco, o navegador bloqueia essa leitura automática. Nesse caso, clique em **Selecionar arquivos** na demonstração e escolha os três arquivos de `presentation/models/`.
-
-`DrawingPad.getPixels()` entrega os 784 pixels (0–255) no formato do MNIST: o dígito é redimensionado para caber em 20 × 20 e centralizado pelo centro de massa numa imagem 28 × 28.
+A pasta `presentation/` contém uma demonstração interativa em que se desenha um dígito e os dois classificadores o reconhecem.
