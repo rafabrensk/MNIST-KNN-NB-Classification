@@ -1,0 +1,21 @@
+{
+  "k": 3,
+  "metric": "euclidean",
+  "p": 2.0,
+  "weights": "uniform",
+  "classes": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9
+  ],
+  "n_samples": 60000,
+  "n_features": 784,
+  "data_file": "knn_train.bin.gz"
+}
